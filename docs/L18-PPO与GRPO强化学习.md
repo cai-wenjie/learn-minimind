@@ -30,38 +30,38 @@
 
 PO（Policy Optimization，策略优化）算法是一大类用于优化语言模型策略的方法。无论是 PPO、GRPO、DPO 还是 CISPO，它们都可以统一到一个框架下：
 
-\[
+$$
 \mathcal{L}_{PO} = \mathbb{E}\left[f(r_t) \cdot g(A_t) - h(KL_t)\right]
-\]
+$$
 
 其中：
-- **策略项 \( f(r_t) \)**：与概率比相关的函数，描述"策略更新的方向和幅度"
-- **优势项 \( g(A_t) \)**：优势函数的变换，描述"这个动作有多好"
-- **正则项 \( h(KL_t) \)**：KL 散度惩罚，防止策略跑太远
+- **策略项 $f(r_t)$**：与概率比相关的函数，描述"策略更新的方向和幅度"
+- **优势项 $g(A_t)$**：优势函数的变换，描述"这个动作有多好"
+- **正则项 $h(KL_t)$**：KL 散度惩罚，防止策略跑太远
 
 ### 1.2 概率比（Importance Ratio）
 
 所有 PO 算法的核心概念——概率比：
 
-\[
+$$
 r_t = \frac{\pi_\theta(a_t | s_t)}{\pi_{old}(a_t | s_t)}
-\]
+$$
 
-- \( \pi_\theta \)：当前策略（正在优化的模型）
-- \( \pi_{old} \)：旧策略（采样数据时的模型）
-- \( a_t \)：第 \( t \) 步的动作（即生成的 token）
-- \( s_t \)：第 \( t \) 步的状态（即前面所有的 token）
+- $\pi_\theta$：当前策略（正在优化的模型）
+- $\pi_{old}$：旧策略（采样数据时的模型）
+- $a_t$：第 $t$ 步的动作（即生成的 token）
+- $s_t$：第 $t$ 步的状态（即前面所有的 token）
 
-**直觉理解**：\( r_t > 1 \) 意味着当前策略比旧策略更倾向于选择 \( a_t \)；\( r_t < 1 \) 则相反。
+**直觉理解**：$r_t > 1$ 意味着当前策略比旧策略更倾向于选择 $a_t$；$r_t < 1$ 则相反。
 
 ### 1.3 不同 PO 算法在统一框架中的位置
 
-| 算法 | 策略项 \( f(r_t) \) | 优势项 \( g(A_t) \) | 正则项 \( h(KL_t) \) |
+| 算法 | 策略项 $f(r_t)$ | 优势项 $g(A_t)$ | 正则项 $h(KL_t)$ |
 |------|---------------------|---------------------|----------------------|
-| PPO | \( \min(r_t, \text{clip}(r_t)) \) | \( A_t \) (GAE) | \( \beta \cdot KL \) |
-| GRPO | \( \min(r_t, \text{clip}(r_t)) \) | \( \tilde{A}_t \) (组内排名) | \( \beta \cdot KL \) |
+| PPO | $\min(r_t, \text{clip}(r_t))$ | $A_t$ (GAE) | $\beta \cdot KL$ |
+| GRPO | $\min(r_t, \text{clip}(r_t))$ | $\tilde{A}_t$ (组内排名) | $\beta \cdot KL$ |
 | DPO | 隐式 | 隐式偏好 | 隐式 |
-| CISPO | 置信区间约束 | \( A_t \) | 自适应 |
+| CISPO | 置信区间约束 | $A_t$ | 自适应 |
 
 ---
 
@@ -75,33 +75,33 @@ PPO（Proximal Policy Optimization）的目标是最大化期望奖励，同时�
 
 最原始的策略梯度：
 
-\[
+$$
 \mathcal{L}_{PG} = -\mathbb{E}[r_t \cdot A_t]
-\]
+$$
 
-问题：如果某个 \( r_t \) 特别大（当前策略和旧策略差异很大），梯度会爆炸，导致训练不稳定。
+问题：如果某个 $r_t$ 特别大（当前策略和旧策略差异很大），梯度会爆炸，导致训练不稳定。
 
 ### 2.3 PPO 的 Clip 机制
 
 PPO 的核心创新就是 clip（截断）机制：
 
-\[
+$$
 \mathcal{L}_{PPO} = -\mathbb{E}\left[\min\left(r_t \cdot A_t, \ \text{clip}(r_t, 1-\varepsilon, 1+\varepsilon) \cdot A_t\right)\right]
-\]
+$$
 
-其中 \( \varepsilon \) 通常取 0.2。
+其中 $\varepsilon$ 通常取 0.2。
 
 **分情况讨论：**
 
-**当 \( A_t > 0 \)（好动作）**：
-- 我们希望增大 \( r_t \)（增加这个动作的概率）
-- 但 clip 将 \( r_t \) 截断在 \( 1+\varepsilon \)，防止增幅过大
-- 取 min：如果 \( r_t > 1+\varepsilon \)，使用截断后的值
+**当 $A_t > 0$（好动作）**：
+- 我们希望增大 $r_t$（增加这个动作的概率）
+- 但 clip 将 $r_t$ 截断在 $1+\varepsilon$，防止增幅过大
+- 取 min：如果 $r_t > 1+\varepsilon$，使用截断后的值
 
-**当 \( A_t < 0 \)（坏动作）**：
-- 我们希望减小 \( r_t \)（降低这个动作的概率）
-- 但 clip 将 \( r_t \) 截断在 \( 1-\varepsilon \)，防止减幅过大
-- 取 min：如果 \( r_t < 1-\varepsilon \)，使用截断后的值
+**当 $A_t < 0$（坏动作）**：
+- 我们希望减小 $r_t$（降低这个动作的概率）
+- 但 clip 将 $r_t$ 截断在 $1-\varepsilon$，防止减幅过大
+- 取 min：如果 $r_t < 1-\varepsilon$，使用截断后的值
 
 **图示理解：**
 
@@ -122,38 +122,38 @@ PPO 的核心创新就是 clip（截断）机制：
 
 优势函数衡量"某个动作比平均水平好多少"：
 
-\[
+$$
 A_t = R_t - V(s_t)
-\]
+$$
 
-- \( R_t \)：从时间步 \( t \) 开始的累积奖励
-- \( V(s_t) \)：状态 \( s_t \) 的价值估计（由 Critic 网络给出）
+- $R_t$：从时间步 $t$ 开始的累积奖励
+- $V(s_t)$：状态 $s_t$ 的价值估计（由 Critic 网络给出）
 
 #### 为什么需要 Critic 网络？
 
-在 LLM 场景中，奖励模型只在生成完整回答后给出一个总分。但我们需要知道每个 token 的贡献。Critic 网络（也叫 Value Network）负责估计"在生成到第 \( t \) 个 token 时，预期最终能获得多少奖励"。
+在 LLM 场景中，奖励模型只在生成完整回答后给出一个总分。但我们需要知道每个 token 的贡献。Critic 网络（也叫 Value Network）负责估计"在生成到第 $t$ 个 token 时，预期最终能获得多少奖励"。
 
 #### GAE（Generalized Advantage Estimation）
 
 实践中使用 GAE 来计算更平滑的优势估计：
 
-\[
+$$
 \hat{A}_t = \sum_{l=0}^{T-t} (\gamma \lambda)^l \delta_{t+l}
-\]
+$$
 
-其中 \( \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t) \) 是 TD 误差。
+其中 $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ 是 TD 误差。
 
 ### 2.5 PPO 的完整损失
 
 PPO 的完整训练目标包含三个部分：
 
-\[
+$$
 \mathcal{L} = \mathcal{L}_{PPO} + c_1 \cdot \mathcal{L}_{VF} + c_2 \cdot \mathcal{L}_{entropy}
-\]
+$$
 
-- \( \mathcal{L}_{PPO} \)：策略损失（clip 版本）
-- \( \mathcal{L}_{VF} \)：Critic 网络的价值函数损失（MSE）
-- \( \mathcal{L}_{entropy} \)：熵奖励，鼓励探索
+- $\mathcal{L}_{PPO}$：策略损失（clip 版本）
+- $\mathcal{L}_{VF}$：Critic 网络的价值函数损失（MSE）
+- $\mathcal{L}_{entropy}$：熵奖励，鼓励探索
 
 ### 2.6 PPO 训练的完整流程
 
@@ -181,17 +181,17 @@ GRPO（Group Relative Policy Optimization）是 DeepSeek 提出的方法，**完
 
 GRPO 的关键洞见：不需要精确估计每个状态的价值，只需要知道**一组回答中哪个相对更好**。
 
-对于同一个 prompt，生成 \( G \) 个回答 \( \{y_1, y_2, ..., y_G\} \)，用奖励模型给每个回答打分 \( \{r_1, r_2, ..., r_G\} \)，然后用组内标准化来计算优势：
+对于同一个 prompt，生成 $G$ 个回答 $\{y_1, y_2, ..., y_G\}$，用奖励模型给每个回答打分 $\{r_1, r_2, ..., r_G\}$，然后用组内标准化来计算优势：
 
-\[
+$$
 \tilde{A}_i = \frac{r_i - \text{mean}(r_1, ..., r_G)}{\text{std}(r_1, ..., r_G)}
-\]
+$$
 
 ### 3.3 GRPO 的损失函数
 
-\[
+$$
 \mathcal{L}_{GRPO} = -\frac{1}{G}\sum_{i=1}^{G}\left[\min\left(r_t^{(i)} \cdot \tilde{A}_i, \ \text{clip}(r_t^{(i)}, 1-\varepsilon, 1+\varepsilon) \cdot \tilde{A}_i\right)\right] + \beta \cdot D_{KL}(\pi_\theta \| \pi_{ref})
-\]
+$$
 
 和 PPO 很像，但有两个关键区别：
 1. **优势函数不同**：用组内相对排名代替 Critic 估计
@@ -373,7 +373,7 @@ MiniMind 还实现了 CISPO（Confidence Interval based Safe Policy Optimization
 
 ### Q1: PPO 的 clip 机制是什么？为什么需要它？
 
-**答**：PPO 将概率比 \( r_t \) 截断在 \( [1-\varepsilon, 1+\varepsilon] \) 范围内，防止单次策略更新幅度过大。这是因为原始策略梯度中如果 \( r_t \) 特别大，梯度会爆炸导致训练不稳定。clip 机制相当于在策略空间中划了一个"信任区域"，只允许在这个区域内更新。
+**答**：PPO 将概率比 $r_t$ 截断在 $[1-\varepsilon, 1+\varepsilon]$ 范围内，防止单次策略更新幅度过大。这是因为原始策略梯度中如果 $r_t$ 特别大，梯度会爆炸导致训练不稳定。clip 机制相当于在策略空间中划了一个"信任区域"，只允许在这个区域内更新。
 
 ### Q2: GRPO 和 PPO 的主要区别是什么？
 
@@ -395,7 +395,7 @@ MiniMind 还实现了 CISPO（Confidence Interval based Safe Policy Optimization
 
 ### Q5: PPO 中优势函数 A_t 是什么？为什么不直接用奖励？
 
-**答**：优势函数 \( A_t = R_t - V(s_t) \)，表示某个动作比平均水平好多少。直接用奖励 \( R_t \) 会导致高方差（因为奖励的绝对值变化大），减去基线 \( V(s_t) \) 后方差更低，训练更稳定。这就是方差缩减（variance reduction）技术。
+**答**：优势函数 $A_t = R_t - V(s_t)$，表示某个动作比平均水平好多少。直接用奖励 $R_t$ 会导致高方差（因为奖励的绝对值变化大），减去基线 $V(s_t)$ 后方差更低，训练更稳定。这就是方差缩减（variance reduction）技术。
 
 ### Q6: MiniMind 使用什么作为奖励模型？为什么选它？
 
@@ -405,9 +405,9 @@ MiniMind 还实现了 CISPO（Confidence Interval based Safe Policy Optimization
 
 **答**：
 
-\[
+$$
 \mathcal{L} = -\mathbb{E}\left[\min(r_t \cdot A_t, \text{clip}(r_t, 1-\varepsilon, 1+\varepsilon) \cdot A_t)\right] + c_1 \cdot \mathcal{L}_{VF} + c_2 \cdot \mathcal{L}_{entropy} + \beta \cdot D_{KL}
-\]
+$$
 
 包含四个部分：策略 clip 损失、价值函数损失、熵奖励和 KL 惩罚。
 
@@ -415,7 +415,7 @@ MiniMind 还实现了 CISPO（Confidence Interval based Safe Policy Optimization
 
 ## ✅ 自测题
 
-1. **填空**：PPO 中 clip 的范围是 \( [\_\_\_\_, \_\_\_\_] \)，ε 通常取 ____。
+1. **填空**：PPO 中 clip 的范围是 $[\_\_\_\_, \_\_\_\_]$，ε 通常取 ____。
 2. **判断**：GRPO 需要一个 Critic 网络来估计状态价值。（对/错）
 3. **选择**：以下哪个不是 On-Policy 方法的特点？
    - A. 每次更新后需要重新采样
@@ -428,7 +428,7 @@ MiniMind 还实现了 CISPO（Confidence Interval based Safe Policy Optimization
 <details>
 <summary>参考答案</summary>
 
-1. \( [1-\varepsilon, 1+\varepsilon] \)，ε 通常取 0.2
+1. $[1-\varepsilon, 1+\varepsilon]$，ε 通常取 0.2
 2. 错。GRPO 不需要 Critic 网络。
 3. B。Off-Policy 才可以反复使用训练数据。
 4. GRPO 对同一个 prompt 生成 G 个回答，用奖励模型打分后做组内标准化（减均值除标准差），得到相对优势。PPO 则使用 Critic 网络估计状态价值，通过 GAE 计算优势。

@@ -87,8 +87,8 @@ DPO 需要**偏好对**（preference pairs）数据：
 
 每条数据包含：
 - `prompt`：用户输入
-- `chosen`（\( y_w \)）：人类偏好的"好回答"（winner）
-- `rejected`（\( y_l \)）：人类不偏好的"坏回答"（loser）
+- `chosen`（$y_w$）：人类偏好的"好回答"（winner）
+- `rejected`（$y_l$）：人类不偏好的"坏回答"（loser）
 
 MiniMind 使用的偏好数据文件是 `dpo.jsonl`。
 
@@ -96,82 +96,82 @@ MiniMind 使用的偏好数据文件是 `dpo.jsonl`。
 
 #### Bradley-Terry 模型
 
-DPO 基于 Bradley-Terry 偏好模型。给定两个回答 \( y_1 \) 和 \( y_2 \)，人类偏好 \( y_1 \) 的概率为：
+DPO 基于 Bradley-Terry 偏好模型。给定两个回答 $y_1$ 和 $y_2$，人类偏好 $y_1$ 的概率为：
 
-\[
+$$
 P(y_1 \succ y_2 | x) = \sigma(r(x, y_1) - r(x, y_2))
-\]
+$$
 
-其中 \( \sigma \) 是 sigmoid 函数，\( r(x, y) \) 是隐含的奖励函数。
+其中 $\sigma$ 是 sigmoid 函数，$r(x, y)$ 是隐含的奖励函数。
 
 #### 从 RLHF 到 DPO 的推导
 
 在标准 RLHF 中，我们要最大化：
 
-\[
+$$
 \max_{\pi_\theta} \mathbb{E}_{x \sim D, y \sim \pi_\theta(\cdot|x)}[r(x,y)] - \beta \cdot D_{KL}[\pi_\theta(\cdot|x) \| \pi_{ref}(\cdot|x)]
-\]
+$$
 
 这个优化问题有封闭解：
 
-\[
+$$
 \pi^*(y|x) = \frac{1}{Z(x)} \pi_{ref}(y|x) \exp\left(\frac{r(x,y)}{\beta}\right)
-\]
+$$
 
 反解出奖励函数：
 
-\[
+$$
 r(x,y) = \beta \log \frac{\pi^*(y|x)}{\pi_{ref}(y|x)} + \beta \log Z(x)
-\]
+$$
 
-代入 Bradley-Terry 模型（\( Z(x) \) 恰好被消掉），得到：
+代入 Bradley-Terry 模型（$Z(x)$ 恰好被消掉），得到：
 
-\[
+$$
 P(y_w \succ y_l | x) = \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)}\right]\right)
-\]
+$$
 
 ### 2.4 DPO 损失函数
 
 最终的 DPO 损失函数就是对上述偏好概率取负对数似然：
 
-\[
+$$
 \mathcal{L}_{DPO}(\pi_\theta; \pi_{ref}) = -\mathbb{E}_{(x, y_w, y_l) \sim D}\left[\log \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)}\right]\right)\right]
-\]
+$$
 
 **逐个符号解释：**
 
 | 符号 | 含义 |
 |------|------|
-| \( \pi_\theta \) | 当前正在训练的策略模型 |
-| \( \pi_{ref} \) | 参考模型（通常是 SFT 后的模型，冻结参数） |
-| \( y_w \) | chosen 回答（winner） |
-| \( y_l \) | rejected 回答（loser） |
-| \( x \) | 输入 prompt |
-| \( \beta \) | 温度参数，控制偏离参考模型的程度 |
-| \( \sigma \) | sigmoid 函数 \( \sigma(z) = \frac{1}{1+e^{-z}} \) |
-| \( D \) | 偏好数据集 |
+| $\pi_\theta$ | 当前正在训练的策略模型 |
+| $\pi_{ref}$ | 参考模型（通常是 SFT 后的模型，冻结参数） |
+| $y_w$ | chosen 回答（winner） |
+| $y_l$ | rejected 回答（loser） |
+| $x$ | 输入 prompt |
+| $\beta$ | 温度参数，控制偏离参考模型的程度 |
+| $\sigma$ | sigmoid 函数 $\sigma(z) = \frac{1}{1+e^{-z}}$ |
+| $D$ | 偏好数据集 |
 
 **直觉理解：**
 
 定义隐含奖励差：
 
-\[
+$$
 \Delta = \beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)}\right]
-\]
+$$
 
-- 当 \( \Delta \) 越大 → \( \sigma(\Delta) \) 越接近 1 → loss 越小
+- 当 $\Delta$ 越大 → $\sigma(\Delta)$ 越接近 1 → loss 越小
 - 含义：模型相比参考模型，**更大幅度地提升了 chosen 的概率，降低了 rejected 的概率**
 
 ### 2.5 β 参数的作用
 
-\( \beta \) 是 DPO 中最关键的超参数：
+$\beta$ 是 DPO 中最关键的超参数：
 
-- **\( \beta \) 越大**：模型越不敢偏离参考模型，输出更保守
-- **\( \beta \) 越小**：模型更自由地调整概率分布，可能过拟合偏好数据
+- **$\beta$ 越大**：模型越不敢偏离参考模型，输出更保守
+- **$\beta$ 越小**：模型更自由地调整概率分布，可能过拟合偏好数据
 
 典型值范围：0.1 ~ 0.5，MiniMind 默认使用 0.1。
 
-可以这样理解：\( \beta \) 就像一根"弹簧"，把策略模型拉向参考模型。弹簧越硬（\( \beta \) 越大），策略模型越不容易跑远。
+可以这样理解：$\beta$ 就像一根"弹簧"，把策略模型拉向参考模型。弹簧越硬（$\beta$ 越大），策略模型越不容易跑远。
 
 ### 2.6 参考模型 π_ref 的角色
 
@@ -264,7 +264,7 @@ def get_log_probs(model, input_ids, labels):
     return per_token_logps.sum(dim=-1)
 ```
 
-这里的关键：\( \log \pi_\theta(y|x) = \sum_{t=1}^{T} \log \pi_\theta(y_t | x, y_{<t}) \)，即序列的 log 概率等于各个 token 的条件 log 概率之和。
+这里的关键：$\log \pi_\theta(y|x) = \sum_{t=1}^{T} \log \pi_\theta(y_t | x, y_{<t})$，即序列的 log 概率等于各个 token 的条件 log 概率之和。
 
 ---
 
@@ -294,9 +294,9 @@ DPO 的效果严重依赖偏好数据的质量。如果 chosen 和 rejected 的�
 
 **答**：
 
-\[
+$$
 \mathcal{L}_{DPO} = -\mathbb{E}_{(x, y_w, y_l)}\left[\log \sigma\left(\beta \left[\log \frac{\pi_\theta(y_w|x)}{\pi_{ref}(y_w|x)} - \log \frac{\pi_\theta(y_l|x)}{\pi_{ref}(y_l|x)}\right]\right)\right]
-\]
+$$
 
 核心含义是让模型相对于参考模型更多地提升好回答的概率、降低坏回答的概率。β 控制了偏离参考模型的程度。
 
@@ -322,7 +322,7 @@ DPO 的效果严重依赖偏好数据的质量。如果 chosen 和 rejected 的�
 
 ### Q6: DPO 训练中，log 概率是怎么算的？
 
-**答**：序列级别的 log 概率等于每个 token 条件 log 概率之和：\( \log \pi(y|x) = \sum_t \log \pi(y_t|x,y_{<t}) \)。实现时对模型 logits 做 log_softmax，gather 出对应 token 的值，然后 sum。
+**答**：序列级别的 log 概率等于每个 token 条件 log 概率之和：$\log \pi(y|x) = \sum_t \log \pi(y_t|x,y_{<t})$。实现时对模型 logits 做 log_softmax，gather 出对应 token 的值，然后 sum。
 
 ### Q7: DPO 有什么局限性？
 

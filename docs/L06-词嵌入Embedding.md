@@ -105,12 +105,12 @@ $$
 $$
 
 其中：
-- \(x\) 是 token id（整数）
-- \(\text{one\_hot}(x)\) 是 \(1 \times V\) 的 One-Hot 向量（\(V\) = vocab_size）
-- \(\mathbf{W}_E\) 是 \(V \times d\) 的嵌入矩阵（\(d\) = d_model）
-- \(\mathbf{e}\) 是 \(1 \times d\) 的嵌入向量
+- $x$ 是 token id（整数）
+- $\text{one\_hot}(x)$ 是 $1 \times V$ 的 One-Hot 向量（$V$ = vocab_size）
+- $\mathbf{W}_E$ 是 $V \times d$ 的嵌入矩阵（$d$ = d_model）
+- $\mathbf{e}$ 是 $1 \times d$ 的嵌入向量
 
-但因为 One-Hot 向量只有一个位置是 1，所以这个矩阵乘法**等价于从矩阵中取出第 \(x\) 行**——这就是"查表"操作。
+但因为 One-Hot 向量只有一个位置是 1，所以这个矩阵乘法**等价于从矩阵中取出第 $x$ 行**——这就是"查表"操作。
 
 ### 3.3 查表 vs 矩阵乘法
 

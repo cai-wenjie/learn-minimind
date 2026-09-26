@@ -38,11 +38,11 @@
 
 ### 1.2 数学直觉
 
-假设每层的变换可以简化为乘以一个系数 \(\alpha\)：
+假设每层的变换可以简化为乘以一个系数 $\alpha$：
 
-- 经过 \(n\) 层后，输出 = \(\alpha^n \cdot x\)
-- 如果 \(\alpha = 1.1\)，8 层后：\(1.1^8 \approx 2.14\)（增大 2 倍）
-- 如果 \(\alpha = 0.9\)，8 层后：\(0.9^8 \approx 0.43\)（缩小一半）
+- 经过 $n$ 层后，输出 = $\alpha^n \cdot x$
+- 如果 $\alpha = 1.1$，8 层后：$1.1^8 \approx 2.14$（增大 2 倍）
+- 如果 $\alpha = 0.9$，8 层后：$0.9^8 \approx 0.43$（缩小一半）
 - 如果层数更多（比如 GPT-3 的 96 层），情况会极其严重
 
 归一化的核心思想：**在每层之后，把数据的分布"拉回"到一个稳定的范围**。
@@ -61,7 +61,7 @@ $$
 \text{BN}(x) = \gamma \cdot \frac{x - \mu_B}{\sqrt{\sigma_B^2 + \epsilon}} + \beta
 $$
 
-其中 \(\mu_B\) 和 \(\sigma_B^2\) 是**同一个 batch 内所有样本**在同一特征维度上的均值和方差。
+其中 $\mu_B$ 和 $\sigma_B^2$ 是**同一个 batch 内所有样本**在同一特征维度上的均值和方差。
 
 #### 归一化维度
 
@@ -89,7 +89,7 @@ $$
 \text{LN}(x) = \gamma \cdot \frac{x - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta
 $$
 
-其中 \(\mu\) 和 \(\sigma^2\) 是**单个样本的单个位置**在所有特征维度上的均值和方差。
+其中 $\mu$ 和 $\sigma^2$ 是**单个样本的单个位置**在所有特征维度上的均值和方差。
 
 #### 归一化维度
 
@@ -101,9 +101,9 @@ LN: 对每个 token，跨所有特征维度计算均值和方差
 
 #### 关键参数
 
-- \(\gamma\)（scale）：可学习的缩放参数，形状 (Dim,)
-- \(\beta\)（shift）：可学习的偏移参数，形状 (Dim,)
-- \(\epsilon\)：一个极小值（如 1e-5），防止除以零
+- $\gamma$（scale）：可学习的缩放参数，形状 (Dim,)
+- $\beta$（shift）：可学习的偏移参数，形状 (Dim,)
+- $\epsilon$：一个极小值（如 1e-5），防止除以零
 
 #### 优点
 
@@ -208,7 +208,7 @@ $$
 \frac{\partial L}{\partial x_l} = \frac{\partial L}{\partial x_L} \cdot \prod_{i=l}^{L-1}\left(1 + \frac{\partial F_i(\text{Norm}(x_i))}{\partial x_i}\right)
 $$
 
-其中 \(+1\) 来自残差连接。因为归一化后的值是有界的，所以 \(\frac{\partial F_i}{\partial x_i}\) 不会太大，保证了梯度的稳定传播。
+其中 $+1$ 来自残差连接。因为归一化后的值是有界的，所以 $\frac{\partial F_i}{\partial x_i}$ 不会太大，保证了梯度的稳定传播。
 
 ---
 
@@ -216,9 +216,9 @@ $$
 
 ### 4.1 防止除以零
 
-RMSNorm 的公式中有一个除法：除以 \(\text{RMS}(x)\)。如果 \(x\) 的所有元素恰好都是 0（虽然极少发生），RMS 就是 0，除以 0 会导致数值溢出。
+RMSNorm 的公式中有一个除法：除以 $\text{RMS}(x)$。如果 $x$ 的所有元素恰好都是 0（虽然极少发生），RMS 就是 0，除以 0 会导致数值溢出。
 
-\(\epsilon\)（epsilon）是一个极小的正数（MiniMind 中默认 1e-6），加在分母上确保不会除以零：
+$\epsilon$（epsilon）是一个极小的正数（MiniMind 中默认 1e-6），加在分母上确保不会除以零：
 
 $$
 \text{RMSNorm}(x) = x \cdot \frac{1}{\sqrt{\text{mean}(x^2) + \epsilon}} \cdot \gamma
@@ -264,7 +264,7 @@ def __init__(self, dim, eps=1e-6):
 ```
 
 - `dim`：特征维度，MiniMind 中是 768
-- `weight`：可学习参数 \(\gamma\)，形状 (768,)，初始值全为 1（意味着训练开始时 RMSNorm 几乎是恒等变换）
+- `weight`：可学习参数 $\gamma$，形状 (768,)，初始值全为 1（意味着训练开始时 RMSNorm 几乎是恒等变换）
 
 **`forward` 方法**：
 
@@ -279,7 +279,7 @@ def forward(self, x):
 1. `x.pow(2)` → 每个元素平方，形状不变 (batch, seq, dim)
 2. `.mean(-1, keepdim=True)` → 沿最后一个维度求均值 → (batch, seq, 1)
 3. `+ self.eps` → 加上 epsilon → (batch, seq, 1)
-4. `torch.rsqrt(...)` → 取倒数再开方，即 \(1/\sqrt{...}\) → (batch, seq, 1)
+4. `torch.rsqrt(...)` → 取倒数再开方，即 $1/\sqrt{...}$ → (batch, seq, 1)
 5. `x * ...` → 元素乘法，广播 → (batch, seq, dim)
 6. `* self.weight` → 乘以可学习参数 γ → (batch, seq, dim)
 
@@ -368,7 +368,7 @@ print(f"RMSNorm 均值: {rms_out.mean(-1).mean():.4f}")     # ≠ 0（没有减�
 
 ### Q1：RMSNorm 和 LayerNorm 有什么区别？
 
-**参考答案**：RMSNorm 是 LayerNorm 的简化版本，去掉了"减均值"（re-centering）操作，只保留了"除以 RMS"（re-scaling）操作。同时也去掉了偏置参数 β，只保留了缩放参数 γ。这样做减少了约 10-15% 的计算量，但效果几乎不变。RMSNorm 的公式是 \(x \cdot \text{rsqrt}(\text{mean}(x^2) + \epsilon) \cdot \gamma\)。
+**参考答案**：RMSNorm 是 LayerNorm 的简化版本，去掉了"减均值"（re-centering）操作，只保留了"除以 RMS"（re-scaling）操作。同时也去掉了偏置参数 β，只保留了缩放参数 γ。这样做减少了约 10-15% 的计算量，但效果几乎不变。RMSNorm 的公式是 $x \cdot \text{rsqrt}(\text{mean}(x^2) + \epsilon) \cdot \gamma$。
 
 ### Q2：Pre-Norm 和 Post-Norm 有什么区别？为什么现代 LLM 都用 Pre-Norm？
 
@@ -403,7 +403,7 @@ print(f"RMSNorm 均值: {rms_out.mean(-1).mean():.4f}")     # ≠ 0（没有减�
 <details>
 <summary>查看答案</summary>
 
-1. \(\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^{d} x_i^2}\)
+1. $\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^{d} x_i^2}$
 2. **错**。RMSNorm 比 LayerNorm **少了**偏置参数 β，只有缩放参数 γ。
 3. 每个 RMSNorm 只有 γ 参数，形状 (768,)，所以是 **768 个参数**。
 4. BatchNorm 沿 batch 维度统计，依赖 batch size，且不适合变长序列。NLP 任务中每个样本长度不同，同一位置跨 batch 的统计没有语义意义。

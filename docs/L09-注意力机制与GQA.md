@@ -52,13 +52,13 @@
 
 ### 1.3 Q、K、V 是怎么来的？
 
-它们都是从同一个输入 \(\mathbf{x}\) 通过**不同的线性变换**得到的：
+它们都是从同一个输入 $\mathbf{x}$ 通过**不同的线性变换**得到的：
 
 $$
 \mathbf{Q} = \mathbf{x} \mathbf{W}_Q, \quad \mathbf{K} = \mathbf{x} \mathbf{W}_K, \quad \mathbf{V} = \mathbf{x} \mathbf{W}_V
 $$
 
-其中 \(\mathbf{W}_Q, \mathbf{W}_K, \mathbf{W}_V\) 是可学习的权重矩阵。
+其中 $\mathbf{W}_Q, \mathbf{W}_K, \mathbf{W}_V$ 是可学习的权重矩阵。
 
 **为什么需要三个不同的矩阵？** 因为"找什么"、"有什么"、"给什么"是三个不同的语义角色。同一个 token 作为"提问者"和"被查询者"时需要展现不同的方面。
 
@@ -80,7 +80,7 @@ $$
 \text{scores} = \mathbf{Q}\mathbf{K}^T \quad \text{shape: } (n, n)
 $$
 
-这是一个 \(n \times n\) 的矩阵（\(n\) 是序列长度），其中 \(\text{scores}[i][j]\) 表示第 \(i\) 个 token（Query）对第 \(j\) 个 token（Key）的"关注程度"。
+这是一个 $n \times n$ 的矩阵（$n$ 是序列长度），其中 $\text{scores}[i][j]$ 表示第 $i$ 个 token（Query）对第 $j$ 个 token（Key）的"关注程度"。
 
 **Step 2：缩放（除以 √d_k）**
 
@@ -88,17 +88,17 @@ $$
 \text{scaled\_scores} = \frac{\text{scores}}{\sqrt{d_k}}
 $$
 
-**为什么要除以 \(\sqrt{d_k}\)？** 这是面试常考题！
+**为什么要除以 $\sqrt{d_k}$？** 这是面试常考题！
 
-当 \(d_k\) 很大时，\(\mathbf{Q}\mathbf{K}^T\) 的值也会很大。假设 Q 和 K 的元素独立同分布，均值为 0，方差为 1，那么：
+当 $d_k$ 很大时，$\mathbf{Q}\mathbf{K}^T$ 的值也会很大。假设 Q 和 K 的元素独立同分布，均值为 0，方差为 1，那么：
 
 $$
 \text{Var}(\mathbf{q} \cdot \mathbf{k}) = d_k
 $$
 
-如果分数过大，softmax 会变得极度"尖锐"——几乎所有概率都集中在最大值上，梯度趋近于 0（softmax 饱和）。除以 \(\sqrt{d_k}\) 将方差重新拉回到 1，使 softmax 的输出更"温和"，梯度更健康。
+如果分数过大，softmax 会变得极度"尖锐"——几乎所有概率都集中在最大值上，梯度趋近于 0（softmax 饱和）。除以 $\sqrt{d_k}$ 将方差重新拉回到 1，使 softmax 的输出更"温和"，梯度更健康。
 
-对于 MiniMind：\(d_k = \text{head\_dim} = 96\)，所以 \(\sqrt{d_k} \approx 9.8\)。
+对于 MiniMind：$d_k = \text{head\_dim} = 96$，所以 $\sqrt{d_k} \approx 9.8$。
 
 **Step 3：Softmax 归一化**
 
@@ -152,7 +152,7 @@ Step 4: weights × V → 加权组合
 
 ### 3.2 Causal Mask 的实现
 
-Causal Mask 是一个下三角矩阵，把未来位置的注意力分数设为 \(-\infty\)：
+Causal Mask 是一个下三角矩阵，把未来位置的注意力分数设为 $-\infty$：
 
 $$
 \text{mask} = \begin{pmatrix} 0 & -\infty & -\infty \\ 0 & 0 & -\infty \\ 0 & 0 & 0 \end{pmatrix}
@@ -455,11 +455,11 @@ wo: 768 × 768 = 589,824
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right) V$$
 
-其中 Q、K、V 分别是通过输入 x 与可学习矩阵 W_Q、W_K、W_V 相乘得到的。除以 \(\sqrt{d_k}\) 是为了防止点积值过大导致 softmax 梯度消失。
+其中 Q、K、V 分别是通过输入 x 与可学习矩阵 W_Q、W_K、W_V 相乘得到的。除以 $\sqrt{d_k}$ 是为了防止点积值过大导致 softmax 梯度消失。
 
 ### Q2：为什么要除以 √d_k？
 
-**参考答案**：当 Q 和 K 的维度 \(d_k\) 较大时，点积结果的方差约为 \(d_k\)，值会很大。大的值通过 softmax 后，输出接近 one-hot（梯度趋近于零），导致训练困难。除以 \(\sqrt{d_k}\) 将点积的方差缩放回 1，使 softmax 的梯度保持健康。
+**参考答案**：当 Q 和 K 的维度 $d_k$ 较大时，点积结果的方差约为 $d_k$，值会很大。大的值通过 softmax 后，输出接近 one-hot（梯度趋近于零），导致训练困难。除以 $\sqrt{d_k}$ 将点积的方差缩放回 1，使 softmax 的梯度保持健康。
 
 ### Q3：请解释 GQA 的原理（必考）
 
@@ -490,7 +490,7 @@ $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)
 <details>
 <summary>查看答案</summary>
 
-1. \(\text{Attention}(Q,K,V) = \text{softmax}(QK^T / \sqrt{d_k}) \cdot V\)
+1. $\text{Attention}(Q,K,V) = \text{softmax}(QK^T / \sqrt{d_k}) \cdot V$
 2. W_Q 的形状是 (768, 768)，参数量 = 768 × 768 = **589,824 ≈ 0.59M**
 3. **错**。GQA 中多个 Q 头共享一组 KV 头。MiniMind 中每 2 个 Q 头共享 1 组 KV。
 4. 模型在训练时能"偷看"未来的 token，等于告诉了答案再做题。训练出的模型在推理时由于看不到未来信息，就会产生训练-推理的不一致（train-test mismatch），导致生成质量极差。

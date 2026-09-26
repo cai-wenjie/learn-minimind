@@ -68,11 +68,11 @@ $$P(x_1, x_2, ..., x_n) = \prod_{t=1}^{n} P(x_t | x_1, x_2, ..., x_{t-1})$$
 
 $$\mathcal{L} = -\log P(x_{\text{correct}})$$
 
-其中 \(P(x_{\text{correct}})\) 是模型对正确 token 的预测概率。
+其中 $P(x_{\text{correct}})$ 是模型对正确 token 的预测概率。
 
 直觉：
-- 如果模型预测正确 token 的概率为 0.9，loss = \(-\log(0.9) = 0.105\)，很小
-- 如果模型预测正确 token 的概率为 0.01，loss = \(-\log(0.01) = 4.605\)，很大
+- 如果模型预测正确 token 的概率为 0.9，loss = $-\log(0.9) = 0.105$，很小
+- 如果模型预测正确 token 的概率为 0.01，loss = $-\log(0.01) = 4.605$，很大
 
 对整个序列取平均：
 
@@ -137,7 +137,7 @@ input_ids = token_ids[:-1]   # 去掉最后一个
 labels = token_ids[1:]       # 去掉第一个
 ```
 
-这样每个位置 \(t\) 的训练信号就是：给定 \(x_1...x_t\)，预测 \(x_{t+1}\)。
+这样每个位置 $t$ 的训练信号就是：给定 $x_1...x_t$，预测 $x_{t+1}$。
 
 ---
 
@@ -168,10 +168,10 @@ Warmup 之后，学习率按余弦函数逐渐衰减：
 $$\eta_t = \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})\left(1 + \cos\left(\frac{t - t_w}{T - t_w} \cdot \pi\right)\right)$$
 
 其中：
-- \(\eta_{\max}\)：最大学习率
-- \(\eta_{\min}\)：最小学习率
-- \(t_w\)：warmup 步数
-- \(T\)：总训练步数
+- $\eta_{\max}$：最大学习率
+- $\eta_{\min}$：最小学习率
+- $t_w$：warmup 步数
+- $T$：总训练步数
 
 **为什么用余弦而不是线性衰减？** 余弦退火在训练中期衰减较慢，给模型更多时间学习；在训练末期加速衰减，帮助模型精细调整。
 
@@ -437,7 +437,7 @@ deepspeed trainer/train_pretrain.py --deepspeed ds_config.json
 
 ### Q1: 预训练的目标函数是什么？
 
-**答**：预训练使用 Next Token Prediction 任务，目标函数是交叉熵损失：\(\mathcal{L} = -\frac{1}{N}\sum_{t=1}^{N}\log P(x_t|x_1,...,x_{t-1})\)。模型在每个位置预测下一个 token 的概率分布，通过最小化交叉熵损失来训练。
+**答**：预训练使用 Next Token Prediction 任务，目标函数是交叉熵损失：$\mathcal{L} = -\frac{1}{N}\sum_{t=1}^{N}\log P(x_t|x_1,...,x_{t-1})$。模型在每个位置预测下一个 token 的概率分布，通过最小化交叉熵损失来训练。
 
 ### Q2: 学习率 Warmup 的作用是什么？
 

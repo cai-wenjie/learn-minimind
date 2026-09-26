@@ -104,9 +104,9 @@ RoPE 的优雅之处在于：它通过**旋转**来编码位置，使得两个�
 
 ### 3.2 二维的情况：旋转矩阵
 
-先从最简单的二维情况理解。假设我们有一个二维向量 \(\mathbf{q} = (q_0, q_1)\)，要给它加上位置 \(m\) 的信息。
+先从最简单的二维情况理解。假设我们有一个二维向量 $\mathbf{q} = (q_0, q_1)$，要给它加上位置 $m$ 的信息。
 
-RoPE 的做法是：**对这个向量施加一个旋转角度为 \(m\theta\) 的旋转变换**：
+RoPE 的做法是：**对这个向量施加一个旋转角度为 $m\theta$ 的旋转变换**：
 
 $$
 R_m \mathbf{q} = \begin{pmatrix} \cos m\theta & -\sin m\theta \\ \sin m\theta & \cos m\theta \end{pmatrix} \begin{pmatrix} q_0 \\ q_1 \end{pmatrix}
@@ -120,15 +120,15 @@ $$
 
 ### 3.3 关键性质：内积只依赖相对位置
 
-如果 Query 在位置 \(m\)，Key 在位置 \(n\)，它们的注意力分数是：
+如果 Query 在位置 $m$，Key 在位置 $n$，它们的注意力分数是：
 
 $$
 (R_m \mathbf{q})^T (R_n \mathbf{k}) = \mathbf{q}^T R_m^T R_n \mathbf{k} = \mathbf{q}^T R_{n-m} \mathbf{k}
 $$
 
-这里用到了旋转矩阵的性质：\(R_m^T R_n = R_{n-m}\)
+这里用到了旋转矩阵的性质：$R_m^T R_n = R_{n-m}$
 
-**注意力分数只依赖相对距离 \(n-m\)**，这就是 RoPE 的核心优势！
+**注意力分数只依赖相对距离 $n-m$**，这就是 RoPE 的核心优势！
 
 ### 3.4 高维推广：两两分组
 
@@ -151,18 +151,18 @@ $$
 $$
 
 其中：
-- \(\text{base}\) 是 rope_theta 参数（MiniMind 使用 1e6）
-- \(i\) 是组的索引（0, 1, 2, ..., d/2-1）
-- \(d\) 是向量维度
+- $\text{base}$ 是 rope_theta 参数（MiniMind 使用 1e6）
+- $i$ 是组的索引（0, 1, 2, ..., d/2-1）
+- $d$ 是向量维度
 
-对于位置 \(m\)，第 \(i\) 组的旋转角度为：
+对于位置 $m$，第 $i$ 组的旋转角度为：
 
 $$
 m \cdot \theta_i = \frac{m}{\text{base}^{2i/d}}
 $$
 
-- 低维度（\(i\) 小）→ \(\theta_i\) 大 → 旋转角度大 → 变化快（编码近距离关系）
-- 高维度（\(i\) 大）→ \(\theta_i\) 小 → 旋转角度小 → 变化慢（编码远距离关系）
+- 低维度（$i$ 小）→ $\theta_i$ 大 → 旋转角度大 → 变化快（编码近距离关系）
+- 高维度（$i$ 大）→ $\theta_i$ 小 → 旋转角度小 → 变化慢（编码远距离关系）
 
 ---
 
@@ -182,7 +182,7 @@ rope_theta（即公式中的 base）是 RoPE 的一个超参数，控制频率�
 ### 4.2 rope_theta 的影响
 
 rope_theta 越大：
-- 所有频率 \(\theta_i\) 都会变小
+- 所有频率 $\theta_i$ 都会变小
 - 旋转角度变化更慢
 - 模型能处理的**有效序列长度更长**
 
@@ -268,11 +268,11 @@ freqs = 1.0 / (theta ** (torch.arange(0, dim, 2)[: (dim // 2)].float() / dim))
 - `torch.arange(0, dim, 2)`：生成 [0, 2, 4, ..., dim-2]
 - 除以 dim：[0/dim, 2/dim, 4/dim, ...]
 - theta 的指数：theta^(0/dim), theta^(2/dim), ...
-- 取倒数：得到频率数组 \([\theta_0, \theta_1, ..., \theta_{d/2-1}]\)
+- 取倒数：得到频率数组 $[\theta_0, \theta_1, ..., \theta_{d/2-1}]$
 
 对于 MiniMind（dim=96，注意这里是 head_dim 而非 d_model）：
 - 共 48 组
-- 频率从 \(1/\text{1e6}^{0/96} = 1.0\) 到 \(1/\text{1e6}^{94/96} \approx 0.000001\)
+- 频率从 $1/\text{1e6}^{0/96} = 1.0$ 到 $1/\text{1e6}^{94/96} \approx 0.000001$
 
 **第二行：位置序列**
 
@@ -295,7 +295,7 @@ freqs_cis = torch.polar(torch.ones_like(freqs), freqs)
 # = cos(freqs) + i * sin(freqs)
 ```
 
-用复数表示旋转是因为：复数乘法天然对应二维旋转。\(e^{i\theta} = \cos\theta + i\sin\theta\)
+用复数表示旋转是因为：复数乘法天然对应二维旋转。$e^{i\theta} = \cos\theta + i\sin\theta$
 
 ### 7.3 应用 RoPE：apply_rotary_emb
 
@@ -374,7 +374,7 @@ class Attention(nn.Module):
 
 ### Q2：rope_theta 是什么？它的作用是什么？
 
-**参考答案**：rope_theta 是 RoPE 频率计算公式 \(\theta_i = 1/\text{base}^{2i/d}\) 中的 base 参数。它控制旋转频率的整体分布。theta 越大，所有频率越小，旋转越慢，模型能有效处理的序列长度就越长。MiniMind 使用 1e6（较大），以支持更长的上下文。
+**参考答案**：rope_theta 是 RoPE 频率计算公式 $\theta_i = 1/\text{base}^{2i/d}$ 中的 base 参数。它控制旋转频率的整体分布。theta 越大，所有频率越小，旋转越慢，模型能有效处理的序列长度就越长。MiniMind 使用 1e6（较大），以支持更长的上下文。
 
 ### Q3：RoPE 和绝对位置编码有什么区别？
 
@@ -390,7 +390,7 @@ class Attention(nn.Module):
 
 ### Q6：请解释 precompute_freqs_cis 函数的作用
 
-**参考答案**：这个函数预计算 RoPE 需要的旋转角度。它首先根据 \(\theta_i = 1/\text{base}^{2i/d}\) 计算每组的频率，然后对每个位置 m 计算旋转角度 \(m \cdot \theta_i\)，最后将角度转为复数形式 \(e^{im\theta_i} = \cos(m\theta_i) + i\sin(m\theta_i)\)。这些复数在推理时通过复数乘法直接施加到 Q/K 上，完成旋转。
+**参考答案**：这个函数预计算 RoPE 需要的旋转角度。它首先根据 $\theta_i = 1/\text{base}^{2i/d}$ 计算每组的频率，然后对每个位置 m 计算旋转角度 $m \cdot \theta_i$，最后将角度转为复数形式 $e^{im\theta_i} = \cos(m\theta_i) + i\sin(m\theta_i)$。这些复数在推理时通过复数乘法直接施加到 Q/K 上，完成旋转。
 
 ---
 
@@ -407,7 +407,7 @@ class Attention(nn.Module):
 
 1. **置换（Permutation）** 不变的。即打乱 token 顺序，Self-Attention 的输出不变。
 2. **错**。RoPE 的旋转频率是预计算的固定值，不需要学习。
-3. 因为旋转矩阵有性质 \(R_m^T R_n = R_{n-m}\)，所以 Query 和 Key 的内积 \((R_m q)^T(R_n k) = q^T R_{n-m} k\) 只取决于 \(n-m\)。
+3. 因为旋转矩阵有性质 $R_m^T R_n = R_{n-m}$，所以 Query 和 Key 的内积 $(R_m q)^T(R_n k) = q^T R_{n-m} k$ 只取决于 $n-m$。
 4. head_dim=96，两两分组，共 **48 组**。
 5. theta 减小会让旋转频率增大、旋转变快，模型在短距离上的位置区分更敏感，但在长距离上会出现"旋转重复"现象，降低长文本处理能力。
 

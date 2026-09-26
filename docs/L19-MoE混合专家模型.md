@@ -173,17 +173,17 @@ Expert 4: 25% tokens         Expert 4: 1% tokens  ← 几乎废弃
 
 为了防止塌缩，需要添加一个辅助损失来鼓励均匀分配：
 
-\[
+$$
 \mathcal{L}_{balance} = \alpha \cdot N \cdot \sum_{i=1}^{N} f_i \cdot P_i
-\]
+$$
 
 其中：
-- \( N \)：专家数量
-- \( f_i \)：实际被路由到专家 \( i \) 的 token 比例（频率）
-- \( P_i \)：Router 对专家 \( i \) 的平均概率
-- \( \alpha \)：平衡系数（通常 0.01）
+- $N$：专家数量
+- $f_i$：实际被路由到专家 $i$ 的 token 比例（频率）
+- $P_i$：Router 对专家 $i$ 的平均概率
+- $\alpha$：平衡系数（通常 0.01）
 
-**直觉理解**：如果某个专家同时有高频率（\( f_i \) 大）和高概率（\( P_i \) 大），loss 就会大，梯度会推动 Router 把一些 token 分给其他专家。
+**直觉理解**：如果某个专家同时有高频率（$f_i$ 大）和高概率（$P_i$ 大），loss 就会大，梯度会推动 Router 把一些 token 分给其他专家。
 
 ```python
 def load_balance_loss(router_probs, expert_indices, num_experts):
@@ -207,9 +207,9 @@ def load_balance_loss(router_probs, expert_indices, num_experts):
 
 MoE 模型的训练损失是语言模型损失加上负载均衡损失：
 
-\[
+$$
 \mathcal{L}_{total} = \mathcal{L}_{LM} + \alpha \cdot \mathcal{L}_{balance}
-\]
+$$
 
 ---
 
@@ -369,7 +369,7 @@ total_loss.backward()
 
 ### Q3: 什么是专家塌缩（Expert Collapse）？怎么解决？
 
-**答**：专家塌缩是指训练过程中所有 token 都倾向于被路由到同一个专家，其他专家得不到训练的现象。原因是正反馈循环。解决方法是添加负载均衡 Loss：\( \mathcal{L}_{balance} = \alpha \cdot N \cdot \sum f_i \cdot P_i \)，鼓励 Router 把 token 更均匀地分配给各个专家。
+**答**：专家塌缩是指训练过程中所有 token 都倾向于被路由到同一个专家，其他专家得不到训练的现象。原因是正反馈循环。解决方法是添加负载均衡 Loss：$\mathcal{L}_{balance} = \alpha \cdot N \cdot \sum f_i \cdot P_i$，鼓励 Router 把 token 更均匀地分配给各个专家。
 
 ### Q4: MoE 的"总参数"和"激活参数"分别是什么？
 
