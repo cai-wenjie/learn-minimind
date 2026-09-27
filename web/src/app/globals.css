@@ -13,20 +13,25 @@
   --accent-pink: #ec4899;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+/*
+ * 注意：自定义基础样式必须放进 @layer base。
+ * Tailwind v4 的 utility 位于 @layer utilities 中，而「未分层」的样式
+ * 优先级永远高于任何分层样式（与选择器特异性无关）。
+ * 若把 `* { margin: 0; padding: 0 }` 写在 layer 外面，会静默压掉
+ * 所有 mt-*/px-*/py-* 间距类，导致页面元素重叠、按钮文字换行。
+ * （Tailwind preflight 已经做好 reset，无需再手写。）
+ */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
 
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      sans-serif;
+  }
 }
 
 ::selection {
