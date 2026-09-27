@@ -1618,3 +1618,7 @@ print(f"Trainable: {trainable_params:,}")
 ---
 
 > **总结**：以上 30 道题覆盖了 Transformer 架构的核心知识点——从基础的 Self-Attention 到 RoPE 位置编码、从 RMSNorm 归一化到 SwiGLU 激活、从 KV Cache 优化到采样策略，每一道都结合了 MiniMind 的具体实现细节。在面试中，能够将理论知识与工程实践相结合，是展现深度理解的最佳方式。
+
+---
+
+[⬅️ 05 · 综合追问与深挖题](05-综合追问与深挖题.md) | [目录](../README.md) | [07 · 训练全流程面试 50 题 ➡️](07-训练全流程面试50题.md)

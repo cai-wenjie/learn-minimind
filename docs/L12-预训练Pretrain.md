@@ -474,3 +474,7 @@ deepspeed trainer/train_pretrain.py --deepspeed ds_config.json
 ## ⏭️ 下一节预告
 
 **L13 - 监督微调 SFT**：预训练让模型学会了"语言"，但还不会"说话"。下一节我们将学习如何通过监督微调，让模型从"百科全书"变成"对话助手"，深入理解 chat_template、Loss Mask 的实现，以及 MiniMind 的 SFT 训练流程。
+
+---
+
+[⬅️ L11 · 数据处理流水线](L11-数据处理流水线.md) | [目录](../README.md) | [L13 · 监督微调 SFT ➡️](L13-监督微调SFT.md)

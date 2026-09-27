@@ -536,3 +536,7 @@ MiniMind 使用 Pre-Norm 结构，一个 Block 的流程是：
 Transformer 的原理搞明白了，但要真正看懂 MiniMind 的代码，我们还需要一个**工具**——PyTorch。下一节我们将快速上手 PyTorch，学会 Tensor 操作、自动求导、以及如何用代码搭建一个简单的神经网络。
 
 👉 **L03 - PyTorch 快速上手：工欲善其事，必先利其器**
+
+---
+
+[⬅️ L01 · 什么是大语言模型](L01-什么是大语言模型.md) | [目录](../README.md) | [L03 · PyTorch 快速上手 ➡️](L03-PyTorch快速上手.md)

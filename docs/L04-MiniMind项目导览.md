@@ -590,3 +590,7 @@ Phase 1 的基础知识到此结束！你已经了解了大语言模型的原理
 在 Phase 2 中，我们将**深入源码**——从 MiniMind 的 Tokenizer 开始，逐个模块拆解模型代码，直到你能完全理解每一行代码的含义。
 
 👉 **Phase 2 第一课：Tokenizer 分词器——如何把文字变成数字**
+
+---
+
+[⬅️ L03 · PyTorch 快速上手](L03-PyTorch快速上手.md) | [目录](../README.md) | [L05 · Tokenizer 分词器 ➡️](L05-Tokenizer分词器.md)

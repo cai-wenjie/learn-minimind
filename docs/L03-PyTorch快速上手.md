@@ -620,3 +620,7 @@ D. 重置学习率
 PyTorch 工具箱准备好了，接下来我们将打开 MiniMind 的"引擎盖"——**逐个文件、逐个模块**地探索 MiniMind 项目的结构。你将学会如何 clone 项目、搭建环境、运行第一次推理。
 
 👉 **L04 - MiniMind 项目导览：千里之行，始于配环境**
+
+---
+
+[⬅️ L02 · Transformer 全景图](L02-Transformer全景图.md) | [目录](../README.md) | [L04 · MiniMind 项目导览 ➡️](L04-MiniMind项目导览.md)

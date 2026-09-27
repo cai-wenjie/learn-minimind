@@ -2086,3 +2086,7 @@ for name, param in model.named_parameters():
 - 数据工程的具体流程？
 - 如果预训练 loss 不收敛怎么办？
 - 如何与 LLaMA-2-7B 做公平对比？
+
+---
+
+[⬅️ 09 · 工程实践面试 30 题](09-工程实践面试30题.md) | [目录](../README.md) | [🏠 返回主页 ➡️](../README.md)

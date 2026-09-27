@@ -419,3 +419,7 @@ total_loss.backward()
 ## 下一节预告
 
 下一节我们将学习 **推理优化**，包括 KV-Cache、YaRN 长度外推、生成策略（Top-K/Top-P/Temperature）等关键技术，让模型又快又好地生成文本。
+
+---
+
+[⬅️ L18 · PPO 与 GRPO 强化学习](L18-PPO与GRPO强化学习.md) | [目录](../README.md) | [L20 · 推理优化 ➡️](L20-推理优化.md)
