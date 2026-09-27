@@ -373,6 +373,47 @@ QLoRA 让你可以在消费级 GPU（24GB）上微调 7B 甚至 13B 的模型，
 
 5. 实现一个简单的 LoRA 线性层（不看参考代码）。
 
+<details>
+<summary>查看答案</summary>
+
+1. **32,768 个参数，占 3.125%**。
+   - $A$：$16 \times 1024 = 16{,}384$
+   - $B$：$1024 \times 16 = 16{,}384$
+   - 合计 $2 \times r \times d = 2 \times 16 \times 1024 = 32{,}768$
+   - 原始参数 $d^2 = 1024^2 = 1{,}048{,}576$ → 占比 $32768 / 1048576 = \textbf{3.125\%}$
+2. **前向传播**：$h = W_0 x + \frac{\alpha}{r} \cdot BAx$
+
+   | 步骤 | 运算 | 维度 |
+   |---|---|---|
+   | 输入 | $x$ | $1 \times 768$ |
+   | ① 降维 | $xA^T$ | $(1{\times}768)(768{\times}8) = 1 \times 8$ |
+   | ② 升维 | $(xA^T)B^T$ | $(1{\times}8)(8{\times}768) = 1 \times 768$ |
+   | ③ 缩放 | $\times \frac{\alpha}{r}$ | $1 \times 768$ |
+   | ④ 主干 | $xW_0^T$ | $1 \times 768$ |
+   | ⑤ 相加 | ①~④求和 | $1 \times 768$ |
+
+3. **因为 $\Delta W = BA$ 被强制为低秩**（$r \ll d$），等于给权重更新加了一个**极强的约束**：只允许在低维子空间里调整。这等价于限制了假设空间，从而反而**不易过拟合**——尤其是在只有几百条样本的领域微调场景下。
+4. **训练会彻底失败**。如果 $A$ 和 $B$ 都是零，则 $BA = 0$，而 LoRA 的梯度又依赖于 $A$、$B$ 本身——梯度也为零，参数永远不更新，模型陷入"死区"。所以标准做法是：**$A$ 高斯随机初始化、$B$ 零初始化**（保证训练开始时 $BA=0$，不破坏预训练模型，同时保留梯度）。
+5. **关键要点**（自写时对照）：① 原权重 `requires_grad = False`；② `A` 形状 `(r, in_features)`、`B` 形状 `(out_features, r)`；③ 初始化为 `randn * 0.01` 和 `zeros`；④ 乘缩放系数 `alpha / r`；⑤ 输出 = 主干输出 + `x @ A.T @ B.T * scaling`。
+
+   ```python
+   class LoRALinear(nn.Module):
+       def __init__(self, in_features, out_features, r=8, alpha=16):
+           super().__init__()
+           self.linear = nn.Linear(in_features, out_features, bias=False)
+           self.linear.weight.requires_grad = False      # 冻结主干
+           self.lora_A = nn.Parameter(torch.randn(r, in_features) * 0.01)
+           self.lora_B = nn.Parameter(torch.zeros(out_features, r))
+           self.scaling = alpha / r
+
+       def forward(self, x):
+           return self.linear(x) + (x @ self.lora_A.T @ self.lora_B.T) * self.scaling
+   ```
+
+> 📚 答案来源：`interview/07-训练全流程面试50题.md` Q23 / Q24、`interview/10-MiniMind项目专属面试50题.md` Q48
+
+</details>
+
 ---
 
 ## ⏭️ 下一节预告

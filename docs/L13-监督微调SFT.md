@@ -432,6 +432,38 @@ for epoch in range(num_epochs):
 
 5. 如果训练和推理的 Chat Template 不一致，会发生什么？为什么？
 
+<details>
+<summary>查看答案</summary>
+
+1. **Chat Template（ChatML 风格）**：
+
+   ```
+   <|im_start|>system
+   你是助手<|im_end|>
+   <|im_start|>user
+   北京在哪个国家？<|im_end|>
+   <|im_start|>assistant
+   北京是中国的首都。<|im_end|>
+   <|im_start|>user
+   人口有多少？<|im_end|>
+   <|im_start|>assistant
+   北京常住人口约 2189 万人。<|im_end|>
+   ```
+
+   **Loss Mask**：system / user 部分全部为 **0**，**两轮 assistant 回复都为 1**（多轮对话每一轮的回复都要训练）。
+2. **模型会去学"重复用户的话"**，浪费容量。我们希望它学"给定指令如何回复"，而不是学"如何生成指令"；system prompt 是固定模板，更不需要学。结果是回复能力被稀释、训练效率下降。
+3. **mid-training**：在预训练之后、传统 SFT 之前，用**大规模指令数据**做的一次训练，既做格式对齐也做**知识注入**。
+   MiniMind 的 14GB SFT 数据量远超"格式对齐"所需（Alpaca 只用 52K 条），其中包含大量新知识——这种训练有时也叫 **annealing**，它模糊了预训练和 SFT 的边界。
+4. **因为少量高质量数据就能完成格式对齐，而低质量数据会让模型学到错误模式**。反例：如果不加清洗地把 10 万条含错误回复的对话数据拿去做 SFT，模型会把"答非所问"也当成正确模式学会，输出质量反而**下降**。
+5. **模型表现会急剧下降**，这是工程中常见的坑。因为：
+   - 训练时模型看到的是 `<|im_start|>user ... <|im_end|><|im_start|>assistant`，推理时如果埋的格式不同，模型就认不出"轮到我说了"。
+   - 特殊 token（`<|im_end|>`）是模型学到的**停止信号**，格式变了可能导致永不停止或提前截断。
+   - 角色边界靠固定 token 划分，格式一乱就出现**角色混淆**。
+
+> 📚 答案来源：`interview/07-训练全流程面试50题.md` Q13 / Q14 / Q15 / Q16 / Q20、`interview/03-训练流程面试题.md` Q11
+
+</details>
+
 ---
 
 ## 🎨 哆啦A梦图解
